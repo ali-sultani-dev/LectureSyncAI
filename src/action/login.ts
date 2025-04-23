@@ -57,7 +57,7 @@ export async function login(credentials: LoginCredentials): Promise<ActionResult
       return { success: true }
     } else {
       console.log('Simulated login failed')
-      return { error: 'Invalid email or password (simulated)' }
+      return { error: 'Invalid email or password' }
     }
   } catch (error) {
     console.error('Login Action Error:', error)
