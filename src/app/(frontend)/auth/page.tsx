@@ -9,8 +9,8 @@ import { useRouter } from 'next/navigation'
 // Adjust the path based on your actual folder structure.
 // Using '@/action/...' assumes you have path aliases configured in tsconfig.json.
 // If not, use relative paths like '../../action/login'.
-import { login } from 'src/action/login' // Or '../../action/login'
-import { signup } from 'src/action/signup' // Or '../../action/signup'
+import { login } from 'src/actions/login' // Or '../../action/login'
+import { signup } from 'src/actions/signup' // Or '../../action/signup'
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true)
