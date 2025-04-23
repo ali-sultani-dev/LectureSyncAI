@@ -1,8 +1,16 @@
+// src/app/(frontend)/auth/page.tsx
 'use client'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+// No need for Link if you only use the button to toggle
+
+// --- IMPORT YOUR SERVER ACTIONS ---
+// Adjust the path based on your actual folder structure.
+// Using '@/action/...' assumes you have path aliases configured in tsconfig.json.
+// If not, use relative paths like '../../action/login'.
+import { login } from 'src/action/login' // Or '../../action/login'
+import { signup } from 'src/action/signup' // Or '../../action/signup'
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true)
@@ -19,31 +27,36 @@ export default function AuthPage() {
     setError('')
 
     try {
-      const url = isLogin ? '/api/auth/login' : '/api/auth/signup'
-      const body = isLogin ? { email, password } : { email, password, name }
+      let result // To store the result from the server action
 
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Something went wrong')
+      if (isLogin) {
+        // --- CALL THE LOGIN SERVER ACTION ---
+        result = await login({ email, password })
+      } else {
+        // --- CALL THE SIGNUP SERVER ACTION ---
+        result = await signup({ email, password, name })
       }
 
-      router.push('/dashboard')
+      // --- CHECK THE RESULT FROM THE SERVER ACTION ---
+      if (result?.error) {
+        // If the action returned an error object, display it
+        throw new Error(result.error)
+      }
+
+      // If the action was successful (didn't throw and didn't return an error)
+      // You might get other data back from the action if needed
+      console.log('Authentication successful')
+      router.push('/dashboard') // Redirect on success
     } catch (err) {
+      // Catch errors thrown either by the action itself or network issues
+      console.error('Form submission error:', err)
       setError(err instanceof Error ? err.message : 'An unknown error occurred')
     } finally {
       setLoading(false)
     }
   }
 
+  // --- Keep the rest of your JSX return statement the same ---
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-6">
@@ -77,11 +90,12 @@ export default function AuthPage() {
                   id="name"
                   name="name"
                   type="text"
-                  required
+                  required={!isLogin} // Only required when signing up
                   className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                   placeholder="Full Name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  disabled={loading}
                 />
               </div>
             )}
@@ -95,10 +109,11 @@ export default function AuthPage() {
                 type="email"
                 autoComplete="email"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className={`appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 ${!isLogin ? '' : 'rounded-t-md'} focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
               />
             </div>
             <div>
@@ -109,12 +124,13 @@ export default function AuthPage() {
                 id="password"
                 name="password"
                 type="password"
-                autoComplete="current-password"
+                autoComplete={isLogin ? 'current-password' : 'new-password'}
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
               />
             </div>
           </div>
@@ -132,8 +148,16 @@ export default function AuthPage() {
 
         <div className="text-center">
           <button
-            onClick={() => setIsLogin(!isLogin)}
+            onClick={() => {
+              setIsLogin(!isLogin)
+              setError('') // Clear error when switching modes
+              // Optionally clear form fields too
+              // setEmail('');
+              // setPassword('');
+              // setName('');
+            }}
             className="font-medium text-indigo-600 hover:text-indigo-500"
+            disabled={loading} // Disable toggle while submitting
           >
             {isLogin ? 'Need an account? Sign up' : 'Already have an account? Sign in'}
           </button>
