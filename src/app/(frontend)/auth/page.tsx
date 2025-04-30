@@ -46,7 +46,7 @@ export default function AuthPage() {
       // If the action was successful (didn't throw and didn't return an error)
       // You might get other data back from the action if needed
       console.log('Authentication successful')
-      router.push('/dashboard') // Redirect on success
+      router.push('/dashboard/notes/id') // Redirect on success
     } catch (err) {
       // Catch errors thrown either by the action itself or network issues
       console.error('Form submission error:', err)
